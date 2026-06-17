@@ -1,0 +1,97 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+}
+
+enum QuestionType {
+  multiple_choice
+  true_false
+  fill_blank
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role       @default(STUDENT)
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  results   Result[]
+}
+
+model Course {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime   @default(now())
+  documents   Document[]
+  exams       Exam[]
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  fileUrl     String
+  fileSize    Int // in bytes
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Exam {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  duration    Int // in minutes
+  courseId    String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  questions   Question[]
+  results     Result[]
+}
+
+model Question {
+  id      String       @id @default(uuid())
+  examId  String
+  exam    Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  type    QuestionType
+  content String
+  score   Float        @default(1.0)
+  options Option[]
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  content    String
+  isCorrect  Boolean  @default(false)
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId      String
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  score       Float
+  answers     Json // To store details of what the student selected/filled for reference
+  submittedAt DateTime @default(now())
+}

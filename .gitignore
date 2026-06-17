@@ -1,0 +1,31 @@
+# Dependencies
+**/node_modules/
+
+# Build output
+**/dist/
+**/build/
+backend/uploads/
+
+# Environment files and secrets
+**/.env
+**/.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Prisma engines cache (large binary artifacts)
+backend/node_modules/.prisma/
+
+# Temporary files
+*.tmp
+*.swp

@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #0a0d12;
+  --bg-surface: #11151d;
+  --bg-soft: #1a202c;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-theme: rgba(71, 85, 105, 0.42);
+}
+
+[data-theme="light"] {
+  --bg-main: #f4f7fb;
+  --bg-surface: #ffffff;
+  --bg-soft: #edf2fb;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --border-theme: rgba(148, 163, 184, 0.45);
+}
+
+@layer base {
+  body {
+    @apply font-sans;
+    background: radial-gradient(circle at 10% -10%, rgba(14, 145, 235, 0.22), transparent 40%),
+      radial-gradient(circle at 100% 0%, rgba(2, 115, 202, 0.2), transparent 35%),
+      var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Manrope', sans-serif;
+    min-width: 320px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+  }
+}
+
+@layer utilities {
+  .app-bg {
+    background-color: var(--bg-main);
+  }
+
+  .app-surface {
+    background-color: var(--bg-surface);
+  }
+
+  .app-soft {
+    background-color: var(--bg-soft);
+  }
+
+  .text-main {
+    color: var(--text-main);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .border-theme {
+    border-color: var(--border-theme);
+  }
+
+  .safe-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .safe-bottom {
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-700 rounded-full hover:bg-brand-600 transition-colors;
+}
+
+/* Glassmorphism card utility */
+.glass-card {
+  @apply backdrop-blur-md shadow-xl rounded-2xl;
+  background-color: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+  border: 1px solid var(--border-theme);
+}
+
+.glass-input {
+  @apply w-full rounded-xl px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all;
+  background-color: color-mix(in srgb, var(--bg-main) 78%, transparent);
+  border: 1px solid var(--border-theme);
+  color: var(--text-main);
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold px-5 py-3 rounded-xl shadow-lg shadow-brand-600/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+}
+
+.btn-secondary {
+  @apply text-slate-200 font-semibold px-5 py-3 rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+  background-color: color-mix(in srgb, var(--bg-soft) 85%, transparent);
+  border: 1px solid var(--border-theme);
+}
+
+.btn-danger {
+  @apply bg-red-600/90 hover:bg-red-500 text-white font-semibold px-5 py-3 rounded-xl shadow-lg shadow-red-900/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+}
+
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200,
+[data-theme="light"] .text-slate-300 {
+  color: var(--text-main);
+}
+
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-500,
+[data-theme="light"] .text-slate-600 {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .bg-dark-950,
+[data-theme="light"] .bg-dark-900,
+[data-theme="light"] .bg-dark-900\/60,
+[data-theme="light"] .bg-dark-900\/80,
+[data-theme="light"] .bg-dark-800,
+[data-theme="light"] .bg-dark-800\/60,
+[data-theme="light"] .bg-dark-700,
+[data-theme="light"] .bg-dark-700\/50,
+[data-theme="light"] .bg-dark-700\/80 {
+  background-color: var(--bg-surface) !important;
+}
+
+[data-theme="light"] .border-dark-700,
+[data-theme="light"] .border-dark-700\/50,
+[data-theme="light"] .border-dark-700\/60,
+[data-theme="light"] .border-dark-550\/30,
+[data-theme="light"] .border-dark-550\/40 {
+  border-color: var(--border-theme) !important;
+}
+
+@media (max-width: 768px) {
+  .glass-card {
+    border-radius: 1rem;
+  }
+}
