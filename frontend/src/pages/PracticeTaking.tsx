@@ -45,6 +45,7 @@ const PracticeTaking: React.FC = () => {
   const [checkMode, setCheckMode] = useState<CheckMode>("submit");
 
   const [questions, setQuestions] = useState<PracticeQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [feedbackMap, setFeedbackMap] = useState<Record<string, Feedback>>({});
 
@@ -91,6 +92,7 @@ const PracticeTaking: React.FC = () => {
       const response = await api.post(`/practice/${id}/session`, payload);
       setQuestions(response.data.questions || []);
       setHasStarted(true);
+      setCurrentQuestionIndex(0);
       setAnswers({});
       setFeedbackMap({});
       setResult(null);
@@ -98,6 +100,12 @@ const PracticeTaking: React.FC = () => {
       console.error("Failed to start practice session:", err);
       setError(err.response?.data?.message || "Không thể bắt đầu phiên ôn tập.");
     }
+  };
+
+  const getDisplayAnswer = (q: PracticeQuestion, rawAnswer: string): string => {
+    if (!rawAnswer) return "(Để trống)";
+    if (q.type === "fill_blank") return rawAnswer;
+    return q.options.find((o) => o.id === rawAnswer)?.content || rawAnswer;
   };
 
   const handleAnswerChange = async (questionId: string, value: string) => {
@@ -288,9 +296,12 @@ const PracticeTaking: React.FC = () => {
             </div>
           )}
 
-          {questions.map((q, idx) => {
+          {questions.length > 0 && (() => {
+            const q = questions[currentQuestionIndex];
+            const idx = currentQuestionIndex;
             const feedback = feedbackMap[q.id];
             const answer = answers[q.id] || "";
+            const displayStudentAnswer = getDisplayAnswer(q, answer);
             const displayCorrectAnswers = feedback
               ? feedback.correctAnswers.map((value) => {
                   const matchedOption = q.options.find((o) => o.id === value);
@@ -299,9 +310,9 @@ const PracticeTaking: React.FC = () => {
               : [];
 
             return (
-              <div key={q.id} className="glass-card p-6">
+              <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-brand-400">Câu {idx + 1}</span>
+                  <span className="text-xs font-bold text-brand-400">Câu {idx + 1}/{questions.length}</span>
                   <span className="text-xs text-slate-400">{q.score} điểm</span>
                 </div>
                 <h3 className="text-white font-semibold mb-4">{q.content}</h3>
@@ -346,15 +357,38 @@ const PracticeTaking: React.FC = () => {
                     {feedback.isCorrect ? <CheckCircle2 className="w-4 h-4 mt-0.5" /> : <XCircle className="w-4 h-4 mt-0.5" />}
                     <div>
                       {feedback.isCorrect ? "Chính xác" : "Chưa đúng"}
+                      <div className="text-xs text-slate-400 mt-1">Bạn chọn: {displayStudentAnswer}</div>
                       {!feedback.isCorrect && displayCorrectAnswers.length > 0 && (
                         <div className="text-xs text-slate-400 mt-1">Đáp án đúng: {displayCorrectAnswers.join(" / ")}</div>
                       )}
                     </div>
                   </div>
                 )}
+
+                <div className="mt-6 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                    disabled={currentQuestionIndex === 0}
+                    className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Câu trước
+                  </button>
+
+                  <span className="text-xs text-slate-400">Điều hướng câu hỏi</span>
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                    disabled={currentQuestionIndex === questions.length - 1}
+                    className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Câu sau
+                  </button>
+                </div>
               </div>
             );
-          })}
+          })()}
         </div>
       )}
     </div>
