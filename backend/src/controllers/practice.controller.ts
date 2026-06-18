@@ -135,6 +135,32 @@ export const getPracticeSetsByCourse = async (req: AuthenticatedRequest, res: Re
   }
 };
 
+export const getStandalonePracticeSets = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userRole = req.user?.role;
+    if (userRole !== "ADMIN") {
+      return res.status(403).json({ message: "Bạn không có quyền xem danh sách này." });
+    }
+
+    const sets = await prisma.practiceSet.findMany({
+      where: {
+        courseId: null,
+      },
+      include: {
+        _count: {
+          select: { questions: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.status(200).json(sets);
+  } catch (error: any) {
+    console.error("GetStandalonePracticeSets error:", error);
+    return res.status(500).json({ message: "Lỗi tải danh sách mã ôn tập.", error: error.message });
+  }
+};
+
 export const findPracticeSetByCode = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { code } = req.body;

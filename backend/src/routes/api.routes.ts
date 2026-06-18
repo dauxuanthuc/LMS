@@ -34,6 +34,7 @@ import {
 import {
   createPracticeSet,
   getPracticeSetsByCourse,
+  getStandalonePracticeSets,
   findPracticeSetByCode,
   getPracticeSetById,
   createPracticeSession,
@@ -102,6 +103,7 @@ router.get("/results/:id", authenticate, getResultById);
 // ==========================================
 router.post("/practice", authenticate, requireRole(["ADMIN"]), createPracticeSet);
 router.get("/practice/courses/:courseId", authenticate, getPracticeSetsByCourse);
+router.get("/practice/standalone", authenticate, requireRole(["ADMIN"]), getStandalonePracticeSets);
 router.post("/practice/by-code", authenticate, findPracticeSetByCode);
 router.get("/practice/:id", authenticate, getPracticeSetById);
 router.post("/practice/:id/session", authenticate, createPracticeSession);

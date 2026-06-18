@@ -15,6 +15,13 @@ interface Course {
   };
 }
 
+interface StandalonePracticeSet {
+  id: string;
+  title: string;
+  accessCode: string | null;
+  _count?: { questions: number };
+}
+
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -30,18 +37,21 @@ const Dashboard: React.FC = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [practiceCode, setPracticeCode] = useState<string>("");
   const [joiningPractice, setJoiningPractice] = useState<boolean>(false);
+  const [standalonePracticeSets, setStandalonePracticeSets] = useState<StandalonePracticeSet[]>([]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
       if (user?.role === "ADMIN") {
-        const [courseRes, userRes, resultsRes] = await Promise.all([
+        const [courseRes, userRes, resultsRes, standalonePracticeRes] = await Promise.all([
           api.get("/courses"),
           api.get("/users"),
           api.get("/results"),
+          api.get("/practice/standalone"),
         ]);
 
         setCourses(courseRes.data);
+        setStandalonePracticeSets(standalonePracticeRes.data || []);
         setStats({
           coursesCount: courseRes.data.length,
           usersCount: userRes.data.length,
@@ -55,6 +65,7 @@ const Dashboard: React.FC = () => {
         ]);
 
         setCourses(courseRes.data);
+        setStandalonePracticeSets([]);
         const scores = resultsRes.data.map((r: any) => r.score);
         const avg = scores.length > 0 ? (scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1) : 0;
         setStats({
@@ -68,6 +79,16 @@ const Dashboard: React.FC = () => {
       console.error("Failed to load dashboard data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyPracticeCode = async (code: string | null) => {
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      alert(`Đã copy mã ôn tập: ${code}`);
+    } catch {
+      alert(`Mã ôn tập: ${code}`);
     }
   };
 
@@ -281,6 +302,36 @@ const Dashboard: React.FC = () => {
                 {joiningPractice ? "Đang vào ôn" : "Vào ôn"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {user?.role === "ADMIN" && standalonePracticeSets.length > 0 && (
+        <div className="glass-card p-6 mb-10">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-brand-400" /> Mã ôn tập tự do
+          </h3>
+          <div className="flex flex-col gap-3">
+            {standalonePracticeSets.map((set) => (
+              <div key={set.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-dark-900/50 border border-dark-700/50">
+                <div>
+                  <div className="text-sm font-semibold text-white">{set.title}</div>
+                  <div className="text-xs text-slate-400">{set._count?.questions || 0} câu hỏi</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-lg bg-brand-500/15 border border-brand-500/30 text-brand-300 font-bold tracking-[0.2em]">
+                    {set.accessCode || "----"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyPracticeCode(set.accessCode)}
+                    className="px-3 py-1 rounded-lg bg-dark-800 border border-dark-600 text-xs text-slate-300 hover:text-white"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
