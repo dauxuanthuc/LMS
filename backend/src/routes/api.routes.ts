@@ -24,6 +24,7 @@ import {
   getExamById,
   createExam,
   deleteExam,
+  uploadExamImage,
 } from "../controllers/exam.controller";
 import {
   submitExam,
@@ -90,6 +91,7 @@ router.get("/documents/:id", authenticate, getDocumentById);
 // ==========================================
 router.get("/courses/:courseId/exams", authenticate, getExamsByCourse);
 router.get("/exams/:id", authenticate, getExamById);
+router.post("/exams/upload-image", authenticate, requireRole(["ADMIN"]), uploadImage.single("image"), uploadExamImage);
 router.post("/exams", authenticate, requireRole(["ADMIN"]), createExam);
 router.delete("/exams/:id", authenticate, requireRole(["ADMIN"]), deleteExam);
 

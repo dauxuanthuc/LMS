@@ -75,6 +75,7 @@ model Question {
   exam    Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
   type    QuestionType
   content String
+  imageUrl String?
   score   Float        @default(1.0)
   options Option[]
 }

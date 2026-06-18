@@ -12,6 +12,7 @@ interface Question {
   id: string;
   type: "multiple_choice" | "true_false" | "fill_blank";
   content: string;
+  imageUrl?: string | null;
   score: number;
   options: Option[];
 }
@@ -232,6 +233,14 @@ const ExamTaking: React.FC = () => {
                   <h3 className="font-bold text-white text-base leading-relaxed mb-6">
                     {question.content}
                   </h3>
+
+                  {question.imageUrl && (
+                    <img
+                      src={question.imageUrl}
+                      alt={`exam-question-${index + 1}`}
+                      className="mb-6 max-h-80 w-full object-contain rounded-xl border border-dark-700/60 bg-dark-950/40"
+                    />
+                  )}
 
                   {/* Rendering inputs depending on type */}
                   {question.type === "multiple_choice" && (

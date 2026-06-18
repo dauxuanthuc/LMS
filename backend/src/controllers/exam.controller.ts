@@ -1,6 +1,7 @@
 import { Response } from "express";
 import prisma from "../config/db";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
+import { StorageService } from "../services/storage";
 
 export const getExamsByCourse = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -91,6 +92,7 @@ export const createExam = async (req: AuthenticatedRequest, res: Response) => {
           create: questions.map((q: any) => ({
             type: q.type,
             content: q.content,
+            imageUrl: q.imageUrl || null,
             score: q.score ? parseFloat(q.score) : 1.0,
             options: {
               create: q.options.map((o: any) => ({
@@ -114,6 +116,26 @@ export const createExam = async (req: AuthenticatedRequest, res: Response) => {
   } catch (error: any) {
     console.error("CreateExam error:", error);
     return res.status(500).json({ message: "Lỗi tạo đề thi.", error: error.message });
+  }
+};
+
+export const uploadExamImage = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ message: "Vui lòng chọn ảnh để tải lên." });
+    }
+
+    const uploadResult = await StorageService.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype
+    );
+
+    return res.status(201).json({ imageUrl: uploadResult.fileUrl, fileSize: uploadResult.fileSize });
+  } catch (error: any) {
+    console.error("UploadExamImage error:", error);
+    return res.status(500).json({ message: "Lỗi tải ảnh câu hỏi bài thi.", error: error.message });
   }
 };
 

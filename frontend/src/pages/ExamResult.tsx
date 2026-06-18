@@ -7,6 +7,7 @@ interface Question {
   id: string;
   type: string;
   content: string;
+  imageUrl?: string | null;
   score: number;
   options: {
     id: string;
@@ -204,6 +205,14 @@ const ExamResult: React.FC = () => {
               <h3 className="font-bold text-white text-base leading-relaxed mb-6">
                 {answer.questionText}
               </h3>
+
+              {originalQuestion?.imageUrl && (
+                <img
+                  src={originalQuestion.imageUrl}
+                  alt={`result-question-${index + 1}`}
+                  className="mb-6 max-h-80 w-full object-contain rounded-xl border border-dark-700/60 bg-dark-950/40"
+                />
+              )}
 
               {/* Rendering options with correct/incorrect highlights for review */}
               {answer.questionType === "multiple_choice" && originalQuestion && (
