@@ -45,6 +45,11 @@ export class StorageService {
         throw new Error("Supabase credentials are not configured in environment variables.");
       }
 
+      // Upload/delete from backend requires service role key, not publishable/anon key.
+      if (supabaseKey.startsWith("sb_publishable_") || supabaseKey.startsWith("sb_anon_")) {
+        throw new Error("SUPABASE_KEY must be a service_role key for server-side uploads.");
+      }
+
       console.log(`Uploading to Supabase Storage: ${uniqueName}`);
       const uploadUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${uniqueName}`;
       
@@ -52,6 +57,8 @@ export class StorageService {
         await axios.post(uploadUrl, fileBuffer, {
           headers: {
             "Authorization": `Bearer ${supabaseKey}`,
+            "apikey": supabaseKey,
+            "x-upsert": "false",
             "Content-Type": mimeType,
           },
         });
@@ -119,6 +126,7 @@ export class StorageService {
             await axios.delete(deleteUrl, {
               headers: {
                 "Authorization": `Bearer ${supabaseKey}`,
+                "apikey": supabaseKey,
                 "Content-Type": "application/json",
               },
               data: { prefixes: [fileName] }
