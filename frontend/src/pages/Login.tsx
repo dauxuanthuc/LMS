@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { BookOpen, ShieldAlert, Lock, Mail, Loader2, Eye, EyeOff } from "lucide-react";
+import { BookOpen, ShieldAlert, Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -82,9 +82,8 @@ const Login: React.FC = () => {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="glass-input pl-12"
+                  className="glass-input"
                 />
-                <Mail className="w-4.5 h-4.5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
@@ -98,17 +97,16 @@ const Login: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="glass-input pl-12 pr-12"
+                  className="glass-input pr-14"
                 />
-                <Lock className="w-4.5 h-4.5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                   title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
-                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                  {showPassword ? "Ẩn" : "Hiện"}
                 </button>
               </div>
             </div>
