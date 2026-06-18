@@ -138,12 +138,14 @@ const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-6 py-10 animate-fade-in">
       {/* Welcome banner */}
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            Bảng điều khiển học tập
+            <span className="md:hidden block animate-float-slow">Xin chào học viên!</span>
+            <span className="hidden md:block">Bảng điều khiển học tập</span>
           </h1>
-          <p className="text-slate-400 mt-1 text-sm md:text-base">
-            Quản lý khóa học, kiểm tra tài liệu và thi trực tuyến tiện lợi.
+          <p className="text-slate-400 text-sm md:text-base leading-relaxed animate-fade-in md:animate-none">
+            <span className="md:hidden block animate-float-slow">Bạn đã sẵn sàng học tập chưa?</span>
+            <span className="hidden md:block">Quản lý khóa học, kiểm tra tài liệu và thi trực tuyến tiện lợi.</span>
           </p>
         </div>
 
