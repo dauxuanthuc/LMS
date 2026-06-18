@@ -175,7 +175,9 @@ const Dashboard: React.FC = () => {
       const response = await api.post("/practice/by-code", { code });
       const practiceSetId = response.data?.id;
       if (practiceSetId) {
-        window.location.href = `/practice/${practiceSetId}`;
+        navigate(`/practice/${practiceSetId}`);
+      } else {
+        alert("Không lấy được thông tin bộ ôn tập. Vui lòng thử lại.");
       }
     } catch (error: any) {
       alert(error.response?.data?.message || "Không tìm thấy bộ ôn tập theo mã.");

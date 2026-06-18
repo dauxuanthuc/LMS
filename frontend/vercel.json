@@ -1,12 +1,20 @@
 {
   "rewrites": [
     {
+      "source": "/favicon.ico",
+      "destination": "/favicon.svg"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://lms-backend-f3wh.onrender.com/api/:path*"
     },
     {
       "source": "/uploads/:path*",
       "destination": "https://lms-backend-f3wh.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/"
     }
   ]
 }
