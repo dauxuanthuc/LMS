@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { BookOpen, ShieldAlert, GraduationCap, Lock, Mail, Loader2 } from "lucide-react";
+import { BookOpen, ShieldAlert, Lock, Mail, Loader2 } from "lucide-react";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -39,17 +39,6 @@ const Login: React.FC = () => {
       setError(err.message || "Tài khoản hoặc mật khẩu không đúng.");
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  // Demo fill helper
-  const handleQuickLogin = (role: "ADMIN" | "STUDENT") => {
-    if (role === "ADMIN") {
-      setEmail("admin@lms.com");
-      setPassword("AdminPassword123");
-    } else {
-      setEmail("student@lms.com");
-      setPassword("StudentPassword123");
     }
   };
 
@@ -125,29 +114,6 @@ const Login: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Credentials */}
-          <div className="mt-8 pt-6 border-t border-dark-700/60 text-center">
-            <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-3.5">
-              Đăng nhập nhanh (Tài khoản mẫu)
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("ADMIN")}
-                className="px-3.5 py-2.5 rounded-xl bg-dark-700/50 hover:bg-dark-700 text-amber-300 border border-dark-550/30 hover:border-amber-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-[0.97]"
-              >
-                <ShieldAlert className="w-4.5 h-4.5" /> Admin Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("STUDENT")}
-                className="px-3.5 py-2.5 rounded-xl bg-dark-700/50 hover:bg-dark-700 text-brand-300 border border-dark-550/30 hover:border-brand-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-[0.97]"
-              >
-                <GraduationCap className="w-4.5 h-4.5" /> Student Demo
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

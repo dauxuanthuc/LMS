@@ -173,16 +173,26 @@ const Navbar: React.FC = () => {
             </Link>
           )}
 
-          <Link
-            to="/results"
-            className={`flex flex-col items-center justify-center py-2 rounded-xl text-[11px] font-semibold ${
-              isActive("/results") ? "app-soft text-main" : "text-muted"
-            } ${user.role !== "ADMIN" ? "hidden" : "flex"}`}
-          >
-            <Trophy className="w-4.5 h-4.5 mb-1" />
-            Bảng điểm
-          </Link>
-          {user.role !== "ADMIN" && <div className="py-2" />}
+          {user.role === "ADMIN" ? (
+            <Link
+              to="/results"
+              className={`flex flex-col items-center justify-center py-2 rounded-xl text-[11px] font-semibold ${
+                isActive("/results") ? "app-soft text-main" : "text-muted"
+              }`}
+            >
+              <Trophy className="w-4.5 h-4.5 mb-1" />
+              Bảng điểm
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={logout}
+              className="flex flex-col items-center justify-center py-2 rounded-xl text-[11px] font-semibold text-muted"
+            >
+              <LogOut className="w-4.5 h-4.5 mb-1" />
+              Đăng xuất
+            </button>
+          )}
         </div>
       </nav>
     </>
