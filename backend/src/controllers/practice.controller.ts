@@ -161,6 +161,72 @@ export const getStandalonePracticeSets = async (req: AuthenticatedRequest, res: 
   }
 };
 
+export const updatePracticeSet = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, description, questions } = req.body;
+
+    if (!title || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ message: "Vui lòng nhập tiêu đề và ít nhất 1 câu hỏi ôn tập." });
+    }
+
+    const existing = await prisma.practiceSet.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ message: "Bộ ôn tập không tồn tại." });
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.practiceQuestion.deleteMany({ where: { practiceSetId: id } });
+
+      return tx.practiceSet.update({
+        where: { id },
+        data: {
+          title,
+          description: description || "",
+          questions: {
+            create: questions.map((q: any) => ({
+              type: q.type,
+              content: q.content,
+              score: q.score ? parseFloat(q.score) : 1,
+              options: {
+                create: q.options.map((o: any) => ({
+                  content: o.content,
+                  isCorrect: o.isCorrect === true || o.isCorrect === "true",
+                })),
+              },
+            })),
+          },
+        },
+        include: {
+          _count: { select: { questions: true } },
+        },
+      });
+    });
+
+    return res.status(200).json(updated);
+  } catch (error: any) {
+    console.error("UpdatePracticeSet error:", error);
+    return res.status(500).json({ message: "Lỗi cập nhật bộ đề ôn tập.", error: error.message });
+  }
+};
+
+export const deletePracticeSet = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.practiceSet.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ message: "Bộ ôn tập không tồn tại." });
+    }
+
+    await prisma.practiceSet.delete({ where: { id } });
+    return res.status(200).json({ message: "Đã xóa bộ ôn tập." });
+  } catch (error: any) {
+    console.error("DeletePracticeSet error:", error);
+    return res.status(500).json({ message: "Lỗi xóa bộ ôn tập.", error: error.message });
+  }
+};
+
 export const findPracticeSetByCode = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { code } = req.body;

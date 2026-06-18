@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import api from "../services/api";
 import { ArrowLeft, Plus, Trash2, CheckCircle2, ShieldAlert, Save, HelpCircle, Loader2, Sparkles } from "lucide-react";
@@ -14,7 +14,7 @@ interface QuestionInput {
 }
 
 const CreatePractice: React.FC = () => {
-  const { id: courseId } = useParams<{ id: string }>();
+  const { id: courseId, practiceId } = useParams<{ id?: string; practiceId?: string }>();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState<string>("");
@@ -33,9 +33,49 @@ const CreatePractice: React.FC = () => {
     },
   ]);
   const [saving, setSaving] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [existingAccessCode, setExistingAccessCode] = useState<string | null>(null);
 
   const isStandalone = !courseId;
+  const isEditMode = Boolean(practiceId);
+
+  useEffect(() => {
+    const fetchPracticeToEdit = async () => {
+      if (!practiceId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.get(`/practice/${practiceId}`);
+        const data = response.data;
+
+        setTitle(data.title || "");
+        setDescription(data.description || "");
+        setExistingAccessCode(data.accessCode || null);
+
+        const mappedQuestions = (data.questions || []).map((q: any) => ({
+          type: q.type,
+          content: q.content,
+          score: Number(q.score) || 1,
+          options: (q.options || []).map((o: any) => ({
+            content: o.content,
+            isCorrect: Boolean(o.isCorrect),
+          })),
+        }));
+
+        if (mappedQuestions.length > 0) {
+          setQuestions(mappedQuestions);
+        }
+      } catch (err: any) {
+        console.error("Failed to load practice set for editing:", err);
+        setError(err.response?.data?.message || "Không thể tải bộ ôn tập để chỉnh sửa.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPracticeToEdit();
+  }, [practiceId]);
 
   const handleAddQuestion = () => {
     setQuestions((prev) => [
@@ -147,25 +187,40 @@ const CreatePractice: React.FC = () => {
 
     setSaving(true);
     try {
-      const response = await api.post("/practice", {
+      const payload = {
         title,
         description,
         courseId: courseId || null,
         questions,
-      });
+      };
 
-      if (isStandalone && response.data.accessCode) {
+      const response = isEditMode
+        ? await api.put(`/practice/${practiceId}`, payload)
+        : await api.post("/practice", payload);
+
+      if (!isEditMode && isStandalone && response.data.accessCode) {
         alert(`Đã tạo bộ ôn tập tự do. Mã ôn tập: ${response.data.accessCode}`);
+      } else if (isEditMode) {
+        alert("Đã cập nhật bộ ôn tập thành công.");
       }
 
       navigate(courseId ? `/courses/${courseId}` : "/");
     } catch (err: any) {
-      console.error("Failed to create practice set:", err);
-      setError(err.response?.data?.message || "Không thể tạo bộ ôn tập.");
+      console.error("Failed to save practice set:", err);
+      setError(err.response?.data?.message || "Không thể lưu bộ ôn tập.");
     } finally {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-24">
+        <Loader2 className="w-12 h-12 text-brand-500 animate-spin mb-4" />
+        <p className="text-slate-400 font-medium">Đang tải bộ ôn tập...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
@@ -179,7 +234,11 @@ const CreatePractice: React.FC = () => {
       <div className="flex flex-col gap-2 mb-8 border-b border-dark-700/60 pb-6">
         <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
           <Sparkles className="w-7 h-7 text-brand-400" />
-          {isStandalone ? "Tạo bộ ôn tập tự do (theo mã)" : "Tạo bộ ôn tập cho môn học"}
+          {isEditMode
+            ? "Chỉnh sửa bộ ôn tập"
+            : isStandalone
+              ? "Tạo bộ ôn tập tự do (theo mã)"
+              : "Tạo bộ ôn tập cho môn học"}
         </h1>
         <p className="text-slate-400 text-sm">
           Học viên có thể chọn ôn toàn bộ câu hỏi hoặc nhập số câu muốn ôn ở mỗi phiên học.
@@ -197,9 +256,15 @@ const CreatePractice: React.FC = () => {
         <div className="glass-card p-6 flex flex-col gap-5">
           <h3 className="text-lg font-bold text-white mb-2">1. Thông tin chung</h3>
 
-          {isStandalone && (
+          {isStandalone && !isEditMode && (
             <div className="p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs">
               Mã ôn tập 4 số sẽ được tạo tự động sau khi lưu.
+            </div>
+          )}
+
+          {isStandalone && isEditMode && existingAccessCode && (
+            <div className="p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs">
+              Mã ôn tập hiện tại: <span className="font-bold tracking-[0.2em]">{existingAccessCode}</span>
             </div>
           )}
 
@@ -379,7 +444,7 @@ const CreatePractice: React.FC = () => {
               </>
             ) : (
               <>
-                <Save className="w-4.5 h-4.5" /> Lưu bộ ôn tập
+                <Save className="w-4.5 h-4.5" /> {isEditMode ? "Cập nhật bộ ôn tập" : "Lưu bộ ôn tập"}
               </>
             )}
           </button>

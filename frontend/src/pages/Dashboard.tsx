@@ -92,6 +92,19 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleDeletePracticeSet = async (setId: string, setTitle: string) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa bộ ôn tập "${setTitle}"?`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/practice/${setId}`);
+      fetchDashboardData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Xóa bộ ôn tập thất bại.");
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, [user]);
@@ -328,6 +341,22 @@ const Dashboard: React.FC = () => {
                     className="px-3 py-1 rounded-lg bg-dark-800 border border-dark-600 text-xs text-slate-300 hover:text-white"
                   >
                     Copy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/practice/manage/${set.id}/edit`)}
+                    className="px-2.5 py-1 rounded-lg bg-dark-800 border border-dark-600 text-xs text-slate-300 hover:text-white flex items-center gap-1"
+                    title="Sửa bộ ôn tập"
+                  >
+                    <Pencil className="w-3.5 h-3.5" /> Sửa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePracticeSet(set.id, set.title)}
+                    className="px-2.5 py-1 rounded-lg bg-red-950/30 border border-red-800/40 text-xs text-red-300 hover:text-red-200 flex items-center gap-1"
+                    title="Xóa bộ ôn tập"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Xóa
                   </button>
                 </div>
               </div>

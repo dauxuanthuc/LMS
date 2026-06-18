@@ -33,6 +33,8 @@ import {
 } from "../controllers/result.controller";
 import {
   createPracticeSet,
+  updatePracticeSet,
+  deletePracticeSet,
   getPracticeSetsByCourse,
   getStandalonePracticeSets,
   findPracticeSetByCode,
@@ -102,6 +104,8 @@ router.get("/results/:id", authenticate, getResultById);
 // PRACTICE ROUTES (FREE PRACTICE)
 // ==========================================
 router.post("/practice", authenticate, requireRole(["ADMIN"]), createPracticeSet);
+router.put("/practice/:id", authenticate, requireRole(["ADMIN"]), updatePracticeSet);
+router.delete("/practice/:id", authenticate, requireRole(["ADMIN"]), deletePracticeSet);
 router.get("/practice/courses/:courseId", authenticate, getPracticeSetsByCourse);
 router.get("/practice/standalone", authenticate, requireRole(["ADMIN"]), getStandalonePracticeSets);
 router.post("/practice/by-code", authenticate, findPracticeSetByCode);
