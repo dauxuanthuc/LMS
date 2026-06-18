@@ -116,6 +116,7 @@ model PracticeQuestion {
   practiceSet   PracticeSet      @relation(fields: [practiceSetId], references: [id], onDelete: Cascade)
   type          QuestionType
   content       String
+  imageUrl      String?
   score         Float            @default(1.0)
   options       PracticeOption[]
 }

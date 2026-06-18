@@ -35,6 +35,7 @@ import {
   createPracticeSet,
   updatePracticeSet,
   deletePracticeSet,
+  uploadPracticeImage,
   getPracticeSetsByCourse,
   getStandalonePracticeSets,
   findPracticeSetByCode,
@@ -43,7 +44,7 @@ import {
   gradePracticeSession,
 } from "../controllers/practice.controller";
 import { authenticate, requireRole } from "../middlewares/auth.middleware";
-import { upload } from "../middlewares/upload.middleware";
+import { upload, uploadImage } from "../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -104,6 +105,7 @@ router.get("/results/:id", authenticate, getResultById);
 // PRACTICE ROUTES (FREE PRACTICE)
 // ==========================================
 router.post("/practice", authenticate, requireRole(["ADMIN"]), createPracticeSet);
+router.post("/practice/upload-image", authenticate, requireRole(["ADMIN"]), uploadImage.single("image"), uploadPracticeImage);
 router.put("/practice/:id", authenticate, requireRole(["ADMIN"]), updatePracticeSet);
 router.delete("/practice/:id", authenticate, requireRole(["ADMIN"]), deletePracticeSet);
 router.get("/practice/courses/:courseId", authenticate, getPracticeSetsByCourse);

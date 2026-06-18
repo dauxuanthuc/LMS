@@ -11,6 +11,7 @@ interface QuestionInput {
     content: string;
     isCorrect: boolean;
   }[];
+  imageUrl?: string | null;
 }
 
 const CreatePractice: React.FC = () => {
@@ -36,6 +37,7 @@ const CreatePractice: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [existingAccessCode, setExistingAccessCode] = useState<string | null>(null);
+  const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
 
   const isStandalone = !courseId;
   const isEditMode = Boolean(practiceId);
@@ -56,6 +58,7 @@ const CreatePractice: React.FC = () => {
         const mappedQuestions = (data.questions || []).map((q: any) => ({
           type: q.type,
           content: q.content,
+          imageUrl: q.imageUrl || null,
           score: Number(q.score) || 1,
           options: (q.options || []).map((o: any) => ({
             content: o.content,
@@ -151,6 +154,42 @@ const CreatePractice: React.FC = () => {
         isCorrect: idx === oIndex,
       }));
     }
+    setQuestions(updated);
+  };
+
+  const handleQuestionImageUpload = async (qIndex: number, file: File | null) => {
+    if (!file) return;
+
+    setError(null);
+    setUploadingImageIndex(qIndex);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await api.post("/practice/upload-image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const imageUrl = response.data?.imageUrl;
+      if (imageUrl) {
+        const updated = [...questions];
+        updated[qIndex].imageUrl = imageUrl;
+        setQuestions(updated);
+      }
+    } catch (err: any) {
+      console.error("Failed to upload question image:", err);
+      setError(err.response?.data?.message || "Không thể tải ảnh câu hỏi.");
+    } finally {
+      setUploadingImageIndex(null);
+    }
+  };
+
+  const handleClearQuestionImage = (qIndex: number) => {
+    const updated = [...questions];
+    updated[qIndex].imageUrl = null;
     setQuestions(updated);
   };
 
@@ -366,6 +405,40 @@ const CreatePractice: React.FC = () => {
               </div>
 
               <div className="bg-dark-900/40 p-4 rounded-xl border border-dark-700/40 flex flex-col gap-3">
+                <div className="flex flex-col gap-2 p-3 rounded-xl bg-dark-950/40 border border-dark-700/50">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ảnh câu hỏi (tùy chọn)</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      onChange={(e) => handleQuestionImageUpload(qIndex, e.target.files?.[0] || null)}
+                      className="text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-300 hover:file:bg-brand-500/25"
+                    />
+                    {uploadingImageIndex === qIndex && (
+                      <span className="text-xs text-brand-300 inline-flex items-center gap-1">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang tải ảnh...
+                      </span>
+                    )}
+                    {question.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleClearQuestionImage(qIndex)}
+                        className="px-2.5 py-1 rounded-lg border border-red-800/40 bg-red-950/30 text-red-300 text-xs"
+                      >
+                        Xóa ảnh
+                      </button>
+                    )}
+                  </div>
+
+                  {question.imageUrl && (
+                    <img
+                      src={question.imageUrl}
+                      alt={`question-${qIndex + 1}`}
+                      className="mt-1 max-h-64 w-full object-contain rounded-xl border border-dark-700/60 bg-dark-950/40"
+                    />
+                  )}
+                </div>
+
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">
                   {question.type === "fill_blank" ? "Đáp án đúng" : "Các phương án"}
                 </label>

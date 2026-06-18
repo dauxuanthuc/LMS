@@ -14,6 +14,7 @@ interface PracticeQuestion {
   id: string;
   type: "multiple_choice" | "true_false" | "fill_blank";
   content: string;
+  imageUrl?: string | null;
   score: number;
   options: PracticeOption[];
 }
@@ -298,6 +299,14 @@ const PracticeTaking: React.FC = () => {
                   <span className="text-xs text-slate-400">{q.score} điểm</span>
                 </div>
                 <h3 className="text-white font-semibold mb-4">{q.content}</h3>
+
+                {q.imageUrl && (
+                  <img
+                    src={q.imageUrl}
+                    alt={`practice-question-${idx + 1}`}
+                    className="mb-4 max-h-80 w-full object-contain rounded-xl border border-dark-700/60 bg-dark-950/40"
+                  />
+                )}
 
                 {(q.type === "multiple_choice" || q.type === "true_false") && (
                   <div className="flex flex-col gap-2">
