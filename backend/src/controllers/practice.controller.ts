@@ -36,7 +36,7 @@ const gradeQuestions = (
 
     if (q.type === "multiple_choice" || q.type === "true_false") {
       const correctOptions = q.options.filter((o) => o.isCorrect);
-      correctAnswers = correctOptions.map((o) => o.id);
+      correctAnswers = correctOptions.map((o) => o.content);
       isCorrect = correctOptions.some((o) => o.id === studentAnswer);
     } else if (q.type === "fill_blank") {
       const correctOptions = q.options.filter((o) => o.isCorrect);

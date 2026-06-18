@@ -291,6 +291,12 @@ const PracticeTaking: React.FC = () => {
           {questions.map((q, idx) => {
             const feedback = feedbackMap[q.id];
             const answer = answers[q.id] || "";
+            const displayCorrectAnswers = feedback
+              ? feedback.correctAnswers.map((value) => {
+                  const matchedOption = q.options.find((o) => o.id === value);
+                  return matchedOption ? matchedOption.content : value;
+                })
+              : [];
 
             return (
               <div key={q.id} className="glass-card p-6">
@@ -340,8 +346,8 @@ const PracticeTaking: React.FC = () => {
                     {feedback.isCorrect ? <CheckCircle2 className="w-4 h-4 mt-0.5" /> : <XCircle className="w-4 h-4 mt-0.5" />}
                     <div>
                       {feedback.isCorrect ? "Chính xác" : "Chưa đúng"}
-                      {!feedback.isCorrect && feedback.correctAnswers.length > 0 && (
-                        <div className="text-xs text-slate-400 mt-1">Đáp án đúng: {feedback.correctAnswers.join(" / ")}</div>
+                      {!feedback.isCorrect && displayCorrectAnswers.length > 0 && (
+                        <div className="text-xs text-slate-400 mt-1">Đáp án đúng: {displayCorrectAnswers.join(" / ")}</div>
                       )}
                     </div>
                   </div>
