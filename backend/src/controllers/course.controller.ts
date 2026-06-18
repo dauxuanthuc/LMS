@@ -33,6 +33,19 @@ export const getCourseById = async (req: Request, res: Response) => {
         exams: {
           orderBy: { createdAt: "desc" },
         },
+        practiceSets: {
+          where: {
+            courseId: {
+              not: null,
+            },
+          },
+          include: {
+            _count: {
+              select: { questions: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 

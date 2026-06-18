@@ -31,6 +31,14 @@ import {
   getAllResults,
   getResultById,
 } from "../controllers/result.controller";
+import {
+  createPracticeSet,
+  getPracticeSetsByCourse,
+  findPracticeSetByCode,
+  getPracticeSetById,
+  createPracticeSession,
+  gradePracticeSession,
+} from "../controllers/practice.controller";
 import { authenticate, requireRole } from "../middlewares/auth.middleware";
 import { upload } from "../middlewares/upload.middleware";
 
@@ -88,5 +96,15 @@ router.post("/results/submit", authenticate, submitExam);
 router.get("/results/me", authenticate, getMyResults);
 router.get("/results", authenticate, requireRole(["ADMIN"]), getAllResults);
 router.get("/results/:id", authenticate, getResultById);
+
+// ==========================================
+// PRACTICE ROUTES (FREE PRACTICE)
+// ==========================================
+router.post("/practice", authenticate, requireRole(["ADMIN"]), createPracticeSet);
+router.get("/practice/courses/:courseId", authenticate, getPracticeSetsByCourse);
+router.post("/practice/by-code", authenticate, findPracticeSetByCode);
+router.get("/practice/:id", authenticate, getPracticeSetById);
+router.post("/practice/:id/session", authenticate, createPracticeSession);
+router.post("/practice/:id/grade", authenticate, gradePracticeSession);
 
 export default router;

@@ -12,6 +12,8 @@ const ExamTaking = lazy(() => import("./pages/ExamTaking"));
 const ExamResult = lazy(() => import("./pages/ExamResult"));
 const UserManagement = lazy(() => import("./pages/UserManagement"));
 const CreateExam = lazy(() => import("./pages/CreateExam"));
+const CreatePractice = lazy(() => import("./pages/CreatePractice"));
+const PracticeTaking = lazy(() => import("./pages/PracticeTaking"));
 const ResultsDashboard = lazy(() => import("./pages/ResultsDashboard"));
 
 const PageFallback = () => (
@@ -71,6 +73,7 @@ const App: React.FC = () => {
                 <Route path="/courses/:id" element={<CourseDetail />} />
                 <Route path="/documents/:id" element={<DocumentView />} />
                 <Route path="/exams/:id" element={<ExamTaking />} />
+                <Route path="/practice/:id" element={<PracticeTaking />} />
                 <Route path="/results/:id" element={<ExamResult />} />
                 <Route path="/results/me" element={<ResultsDashboard />} />
                 <Route path="/results" element={<ResultsDashboard />} />
@@ -79,6 +82,8 @@ const App: React.FC = () => {
                 <Route element={<AdminRoute />}>
                   <Route path="/users" element={<UserManagement />} />
                   <Route path="/courses/:id/exams/create" element={<CreateExam />} />
+                  <Route path="/courses/:id/practice/create" element={<CreatePractice />} />
+                  <Route path="/practice/create" element={<CreatePractice />} />
                 </Route>
               </Route>
             </Route>

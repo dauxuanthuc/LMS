@@ -27,6 +27,13 @@ interface CourseDetails {
   description: string | null;
   documents: Document[];
   exams: Exam[];
+  practiceSets: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    accessCode: string | null;
+    _count?: { questions: number };
+  }>;
 }
 
 const CourseDetail: React.FC = () => {
@@ -271,6 +278,41 @@ const CourseDetail: React.FC = () => {
               </Link>
             )}
           </div>
+
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-5.5 h-5.5 text-brand-400" /> Ôn tập tự do
+              <span className="text-xs bg-dark-750 text-slate-400 px-2 py-0.5 rounded-full border border-dark-700">
+                {course.practiceSets?.length || 0}
+              </span>
+            </h2>
+            {user?.role === "ADMIN" && (
+              <Link to={`/courses/${courseId}/practice/create`} className="px-4 py-2 bg-dark-800 hover:bg-dark-700 border border-dark-600/50 hover:border-brand-500/30 text-xs font-semibold text-brand-400 hover:text-brand-300 rounded-xl cursor-pointer flex items-center gap-1.5 transition-all">
+                <Plus className="w-4 h-4" /> Tạo bộ ôn
+              </Link>
+            )}
+          </div>
+
+          {(course.practiceSets?.length || 0) > 0 && (
+            <div className="flex flex-col gap-4 mb-8">
+              {course.practiceSets.map((set) => (
+                <Link key={set.id} to={`/practice/${set.id}`} className="glass-card p-5 hover:bg-dark-800/80 group transition-all duration-300 flex items-center justify-between gap-4">
+                  <div>
+                    <h4 className="font-bold text-sm text-white group-hover:text-brand-400 transition-colors line-clamp-1">
+                      {set.title}
+                    </h4>
+                    <p className="text-slate-455 text-xs mt-0.5 line-clamp-1">
+                      {set.description || "Bộ đề ôn tập theo môn học"}
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-brand-300 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider mt-2.5">
+                      {set._count?.questions || 0} câu hỏi
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-brand-400">Vào ôn tập</span>
+                </Link>
+              ))}
+            </div>
+          )}
 
           {course.exams.length === 0 ? (
             <div className="text-center p-12 glass-card flex-grow flex flex-col justify-center items-center">

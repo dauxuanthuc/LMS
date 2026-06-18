@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
-import { BookOpen, FileText, Award, Users, Plus, Pencil, Trash2, Loader2, ArrowRight } from "lucide-react";
+import { BookOpen, FileText, Award, Users, Plus, Pencil, Trash2, Loader2, ArrowRight, Sparkles } from "lucide-react";
 
 interface Course {
   id: string;
@@ -17,6 +17,7 @@ interface Course {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [stats, setStats] = useState({ coursesCount: 0, usersCount: 0, resultsCount: 0, avgScore: 0 });
@@ -27,6 +28,8 @@ const Dashboard: React.FC = () => {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [saving, setSaving] = useState<boolean>(false);
+  const [practiceCode, setPracticeCode] = useState<string>("");
+  const [joiningPractice, setJoiningPractice] = useState<boolean>(false);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -125,6 +128,28 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleJoinPracticeByCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = practiceCode.trim();
+    if (!/^\d{4}$/.test(code)) {
+      alert("Mã ôn tập phải gồm đúng 4 chữ số.");
+      return;
+    }
+
+    setJoiningPractice(true);
+    try {
+      const response = await api.post("/practice/by-code", { code });
+      const practiceSetId = response.data?.id;
+      if (practiceSetId) {
+        window.location.href = `/practice/${practiceSetId}`;
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Không tìm thấy bộ ôn tập theo mã.");
+    } finally {
+      setJoiningPractice(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-24">
@@ -152,9 +177,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {user?.role === "ADMIN" && (
-          <button onClick={() => handleOpenModal(null)} className="btn-primary cursor-pointer">
-            <Plus className="w-5 h-5" /> Thêm khóa học mới
-          </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={() => navigate("/practice/create")} className="btn-secondary cursor-pointer">
+              <Sparkles className="w-4 h-4" /> Tạo ôn tập tự do
+            </button>
+            <button onClick={() => handleOpenModal(null)} className="btn-primary cursor-pointer">
+              <Plus className="w-5 h-5" /> Thêm khóa học mới
+            </button>
+          </div>
         )}
       </div>
 
@@ -229,6 +259,31 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {user?.role === "STUDENT" && (
+        <div className="glass-card p-6 mb-10">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-brand-400" /> Ôn tập tự do
+              </h3>
+              <p className="text-slate-400 text-sm mt-1">Nhập mã ôn tập 4 số do giáo viên cung cấp để bắt đầu học ngay.</p>
+            </div>
+            <form onSubmit={handleJoinPracticeByCode} className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                value={practiceCode}
+                onChange={(e) => setPracticeCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                className="glass-input w-40 text-center tracking-[0.3em] font-bold"
+                placeholder="0000"
+                inputMode="numeric"
+              />
+              <button type="submit" className="btn-primary" disabled={joiningPractice}>
+                {joiningPractice ? "Đang vào ôn" : "Vào ôn"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Courses Section */}
       <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
