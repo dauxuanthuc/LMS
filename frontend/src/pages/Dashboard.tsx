@@ -140,7 +140,9 @@ const Dashboard: React.FC = () => {
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            <span className="md:hidden block animate-float-slow">Xin chào học viên!</span>
+            <span className="md:hidden block animate-float-slow">
+              Xin chào, {user?.name || "học viên"}!
+            </span>
             <span className="hidden md:block">Bảng điều khiển học tập</span>
           </h1>
           <p className="text-slate-400 text-sm md:text-base leading-relaxed animate-fade-in md:animate-none">
