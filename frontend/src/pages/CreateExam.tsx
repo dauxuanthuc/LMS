@@ -14,6 +14,19 @@ interface QuestionInput {
   }[];
 }
 
+const createEmptyQuestion = (): QuestionInput => ({
+  type: "multiple_choice",
+  content: "",
+  imageUrl: null,
+  score: 2.5,
+  options: [
+    { content: "", isCorrect: true },
+    { content: "", isCorrect: false },
+    { content: "", isCorrect: false },
+    { content: "", isCorrect: false },
+  ],
+});
+
 const CreateExam: React.FC = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -21,41 +34,14 @@ const CreateExam: React.FC = () => {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [duration, setDuration] = useState<number>(30); // Default 30 mins
-  const [questions, setQuestions] = useState<QuestionInput[]>([
-    {
-      type: "multiple_choice",
-      content: "",
-      imageUrl: null,
-      score: 2.5,
-      options: [
-        { content: "", isCorrect: true },
-        { content: "", isCorrect: false },
-        { content: "", isCorrect: false },
-        { content: "", isCorrect: false },
-      ],
-    },
-  ]);
+  const [questions, setQuestions] = useState<QuestionInput[]>([createEmptyQuestion()]);
 
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
 
   const handleAddQuestion = () => {
-    setQuestions([
-      ...questions,
-      {
-        type: "multiple_choice",
-        content: "",
-        imageUrl: null,
-        score: 2.5,
-        options: [
-          { content: "", isCorrect: true },
-          { content: "", isCorrect: false },
-          { content: "", isCorrect: false },
-          { content: "", isCorrect: false },
-        ],
-      },
-    ]);
+    setQuestions((prev) => [createEmptyQuestion(), ...prev]);
   };
 
   const handleRemoveQuestion = (qIndex: number) => {
@@ -287,17 +273,37 @@ const CreateExam: React.FC = () => {
 
         {/* Questions Manager */}
         <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <HelpCircle className="w-5 h-5 text-brand-400" /> 2. Danh sách câu hỏi ({questions.length})
             </h3>
-            <button
-              type="button"
-              onClick={handleAddQuestion}
-              className="px-4 py-2.5 bg-brand-600/10 border border-brand-500/20 text-brand-400 hover:bg-brand-600/20 text-xs font-bold rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" /> Thêm câu hỏi
-            </button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleAddQuestion}
+                className="px-4 py-2.5 bg-brand-600/10 border border-brand-500/20 text-brand-400 hover:bg-brand-600/20 text-xs font-bold rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Thêm câu hỏi
+              </button>
+              <Link to={`/courses/${courseId}`} className="btn-secondary text-xs sm:text-sm">
+                Hủy thiết lập
+              </Link>
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-primary text-xs sm:text-sm cursor-pointer"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Đang thiết lập...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4.5 h-4.5" /> Lưu & Xuất bản đề thi
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {questions.map((question, qIndex) => (
@@ -326,7 +332,7 @@ const CreateExam: React.FC = () => {
                   <select
                     value={question.type}
                     onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value as any)}
-                    className="w-full bg-dark-950/80 border border-dark-700 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                    className="glass-input text-xs py-2.5 px-3"
                   >
                     <option value="multiple_choice">Trắc nghiệm (4 đáp án)</option>
                     <option value="true_false">Đúng / Sai</option>
@@ -343,7 +349,7 @@ const CreateExam: React.FC = () => {
                     min="0"
                     value={question.score}
                     onChange={(e) => handleQuestionScoreChange(qIndex, parseFloat(e.target.value))}
-                    className="w-full bg-dark-950/80 border border-dark-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
+                    className="glass-input text-xs py-2 px-3"
                   />
                 </div>
 
@@ -356,14 +362,14 @@ const CreateExam: React.FC = () => {
                     placeholder="Ví dụ: AI viết tắt của từ nào? hoặc Thẻ ______ dùng để tạo liên kết."
                     value={question.content}
                     onChange={(e) => handleQuestionTextChange(qIndex, e.target.value)}
-                    className="w-full bg-dark-950/80 border border-dark-700 rounded-xl px-4 py-2 text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+                    className="glass-input text-xs py-2 px-4"
                   />
                 </div>
               </div>
 
               {/* Options Inputs Block */}
-              <div className="bg-dark-900/40 p-4 rounded-xl border border-dark-700/40 flex flex-col gap-3">
-                <div className="flex flex-col gap-2 p-3 rounded-xl bg-dark-950/40 border border-dark-700/50">
+              <div className="bg-dark-900/20 p-4 rounded-xl border border-dark-700/30 flex flex-col gap-3">
+                <div className="flex flex-col gap-2 p-3 rounded-xl bg-dark-950/20 border border-dark-700/30">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ảnh câu hỏi (tùy chọn)</label>
                   <div className="flex items-center gap-2 flex-wrap">
                     <input
@@ -423,7 +429,7 @@ const CreateExam: React.FC = () => {
                             placeholder={`Nhập phương án ${letters[oIndex]}...`}
                             value={option.content}
                             onChange={(e) => handleOptionTextChange(qIndex, oIndex, e.target.value)}
-                            className="flex-grow bg-dark-950/70 border border-dark-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none"
+                            className="glass-input text-xs py-1.5 px-3"
                           />
                         </div>
                       );
@@ -441,7 +447,7 @@ const CreateExam: React.FC = () => {
                         className={`p-3 rounded-xl border font-bold text-xs flex items-center justify-between cursor-pointer transition-all ${
                           option.isCorrect
                             ? "bg-emerald-950/20 text-emerald-400 border-emerald-500/30"
-                            : "bg-dark-950/50 text-slate-400 border-dark-700/60"
+                            : "bg-dark-900/20 text-slate-400 border-dark-700/40"
                         }`}
                       >
                         <span>{option.content}</span>
@@ -459,35 +465,13 @@ const CreateExam: React.FC = () => {
                       placeholder="Nhập chính xác từ cần điền đúng (không phân biệt hoa/thường)..."
                       value={question.options[0].content}
                       onChange={(e) => handleOptionTextChange(qIndex, 0, e.target.value)}
-                      className="w-full bg-dark-950/70 border border-dark-750 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500"
+                      className="glass-input text-xs py-2.5 px-4"
                     />
                   </div>
                 )}
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Footer Submit Buttons */}
-        <div className="flex justify-end gap-3 mt-4">
-          <Link to={`/courses/${courseId}`} className="btn-secondary text-sm">
-            Hủy thiết lập
-          </Link>
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary text-sm cursor-pointer"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" /> Đang thiết lập...
-              </>
-            ) : (
-              <>
-                <Save className="w-4.5 h-4.5" /> Lưu & Xuất bản đề thi
-              </>
-            )}
-          </button>
         </div>
       </form>
     </div>
