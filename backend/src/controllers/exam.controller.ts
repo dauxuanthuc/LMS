@@ -22,6 +22,15 @@ export const getExamsByCourse = async (req: AuthenticatedRequest, res: Response)
   }
 };
 
+const shuffleArray = <T>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export const getExamById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -47,10 +56,27 @@ export const getExamById = async (req: AuthenticatedRequest, res: Response) => {
 
     // Security: If the caller is a STUDENT, strip the isCorrect details from options
     if (userRole === "STUDENT") {
-      const sanitizedQuestions = exam.questions.map((question) => {
+      // Shuffle questions
+      const shuffledQuestions = shuffleArray(exam.questions);
+
+      const sanitizedQuestions = shuffledQuestions.map((question) => {
+        // Only return options for multiple_choice and true_false
+        // For fill_blank, the correct answers are stored in options, so do not send them to the client
+        if (question.type === "fill_blank") {
+          return {
+            ...question,
+            options: [],
+          };
+        }
+
+        // Shuffle options only for multiple_choice questions (true_false should keep original Đúng/Sai order)
+        const optionsToProcess = question.type === "multiple_choice"
+          ? shuffleArray(question.options)
+          : question.options;
+
         return {
           ...question,
-          options: question.options.map((option) => ({
+          options: optionsToProcess.map((option) => ({
             id: option.id,
             questionId: option.questionId,
             content: option.content,
