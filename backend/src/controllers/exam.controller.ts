@@ -273,117 +273,114 @@ export const updateExam = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ message: "Không tìm thấy đề thi." });
     }
 
-    // Process questions update in a transaction
-    const updatedExam = await prisma.$transaction(async (tx) => {
-      // 1. Update general exam details
-      await tx.exam.update({
-        where: { id },
-        data: {
-          title,
-          description: description || "",
-          duration: parseInt(duration),
-        },
-      });
-
-      // 2. Identify questions to delete
-      const incomingQuestionIds = questions
-        .map((q: any) => q.id)
-        .filter((qId: any) => typeof qId === "string");
-
-      await tx.question.deleteMany({
-        where: {
-          examId: id,
-          NOT: {
-            id: { in: incomingQuestionIds },
-          },
-        },
-      });
-
-      // 3. Update or Create questions and their options
-      for (const q of questions) {
-        if (q.id && typeof q.id === "string") {
-          // Update existing question
-          await tx.question.update({
-            where: { id: q.id },
-            data: {
-              type: q.type,
-              content: q.content,
-              imageUrl: q.imageUrl || null,
-              score: q.score ? parseFloat(q.score) : 1.0,
-            },
-          });
-
-          // Identify options to delete for this question
-          const incomingOptionIds = q.options
-            .map((o: any) => o.id)
-            .filter((oId: any) => typeof oId === "string");
-
-          await tx.option.deleteMany({
-            where: {
-              questionId: q.id,
-              NOT: {
-                id: { in: incomingOptionIds },
-              },
-            },
-          });
-
-          // Update or Create options
-          for (const o of q.options) {
-            if (o.id && typeof o.id === "string") {
-              // Update option
-              await tx.option.update({
-                where: { id: o.id },
-                data: {
-                  content: o.content,
-                  isCorrect: o.isCorrect === true || o.isCorrect === "true",
-                },
-              });
-            } else {
-              // Create option
-              await tx.option.create({
-                data: {
-                  questionId: q.id,
-                  content: o.content,
-                  isCorrect: o.isCorrect === true || o.isCorrect === "true",
-                },
-              });
-            }
-          }
-        } else {
-          // Create new question
-          await tx.question.create({
-            data: {
-              examId: id,
-              type: q.type,
-              content: q.content,
-              imageUrl: q.imageUrl || null,
-              score: q.score ? parseFloat(q.score) : 1.0,
-              options: {
-                create: q.options.map((o: any) => ({
-                  content: o.content,
-                  isCorrect: o.isCorrect === true || o.isCorrect === "true",
-                })),
-              },
-            },
-          });
-        }
-      }
-
-      // Return the updated exam with questions and options
-      return await tx.exam.findUnique({
-        where: { id },
-        include: {
-          questions: {
-            include: {
-              options: true,
-            },
-          },
-        },
-      });
+    // 1. Update general exam details
+    await prisma.exam.update({
+      where: { id },
+      data: {
+        title,
+        description: description || "",
+        duration: parseInt(duration),
+      },
     });
+
+    // 2. Identify questions to delete
+    const incomingQuestionIds = questions
+      .map((q: any) => q.id)
+      .filter((qId: any) => typeof qId === "string");
+
+    await prisma.question.deleteMany({
+      where: {
+        examId: id,
+        NOT: {
+          id: { in: incomingQuestionIds },
+        },
+      },
+    });
+
+    // 3. Update or Create questions and their options
+    for (const q of questions) {
+      if (q.id && typeof q.id === "string") {
+        // Update existing question
+        await prisma.question.update({
+          where: { id: q.id },
+          data: {
+            type: q.type,
+            content: q.content,
+            imageUrl: q.imageUrl || null,
+            score: q.score ? parseFloat(q.score) : 1.0,
+          },
+        });
+
+        // Identify options to delete for this question
+        const incomingOptionIds = q.options
+          .map((o: any) => o.id)
+          .filter((oId: any) => typeof oId === "string");
+
+        await prisma.option.deleteMany({
+          where: {
+            questionId: q.id,
+            NOT: {
+              id: { in: incomingOptionIds },
+            },
+          },
+        });
+
+        // Update or Create options
+        for (const o of q.options) {
+          if (o.id && typeof o.id === "string") {
+            // Update option
+            await prisma.option.update({
+              where: { id: o.id },
+              data: {
+                content: o.content,
+                isCorrect: o.isCorrect === true || o.isCorrect === "true",
+              },
+            });
+          } else {
+            // Create option
+            await prisma.option.create({
+              data: {
+                questionId: q.id,
+                content: o.content,
+                isCorrect: o.isCorrect === true || o.isCorrect === "true",
+              },
+            });
+          }
+        }
+      } else {
+        // Create new question
+        await prisma.question.create({
+          data: {
+            examId: id,
+            type: q.type,
+            content: q.content,
+            imageUrl: q.imageUrl || null,
+            score: q.score ? parseFloat(q.score) : 1.0,
+            options: {
+              create: q.options.map((o: any) => ({
+                content: o.content,
+                isCorrect: o.isCorrect === true || o.isCorrect === "true",
+              })),
+            },
+          },
+        });
+      }
+    }
 
     // Automatically regrade all existing student submissions based on the new exam content and answers
     await regradeExamResults(id);
+
+    // Fetch and return the updated exam with questions and options
+    const updatedExam = await prisma.exam.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
 
     return res.status(200).json(updatedExam);
   } catch (error: any) {
