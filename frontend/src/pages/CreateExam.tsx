@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 import { ArrowLeft, Plus, Trash2, CheckCircle2, ShieldAlert, Award, Save, HelpCircle, Loader2 } from "lucide-react";
 
 interface QuestionInput {
+  id?: string;
   type: "multiple_choice" | "true_false" | "fill_blank";
   content: string;
   imageUrl?: string | null;
   score: number;
   options: {
+    id?: string;
     content: string;
     isCorrect: boolean;
   }[];
@@ -28,7 +30,7 @@ const createEmptyQuestion = (): QuestionInput => ({
 });
 
 const CreateExam: React.FC = () => {
-  const { id: courseId } = useParams<{ id: string }>();
+  const { id: courseId, examId } = useParams<{ id?: string; examId?: string }>();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState<string>("");
@@ -37,8 +39,54 @@ const CreateExam: React.FC = () => {
   const [questions, setQuestions] = useState<QuestionInput[]>([createEmptyQuestion()]);
 
   const [saving, setSaving] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
+  const [fetchedCourseId, setFetchedCourseId] = useState<string | null>(null);
+
+  const isEditMode = Boolean(examId);
+  const activeCourseId = courseId || fetchedCourseId;
+
+  useEffect(() => {
+    const fetchExamToEdit = async () => {
+      if (!examId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.get(`/exams/${examId}`);
+        const data = response.data;
+
+        setTitle(data.title || "");
+        setDescription(data.description || "");
+        setDuration(data.duration || 30);
+        setFetchedCourseId(data.courseId || null);
+
+        const mappedQuestions = (data.questions || []).map((q: any) => ({
+          id: q.id,
+          type: q.type,
+          content: q.content,
+          imageUrl: q.imageUrl || null,
+          score: Number(q.score) || 2.5,
+          options: (q.options || []).map((o: any) => ({
+            id: o.id,
+            content: o.content,
+            isCorrect: Boolean(o.isCorrect),
+          })),
+        }));
+
+        if (mappedQuestions.length > 0) {
+          setQuestions(mappedQuestions);
+        }
+      } catch (err: any) {
+        console.error("Failed to load exam for editing:", err);
+        setError(err.response?.data?.message || "Không thể tải đề thi để chỉnh sửa.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExamToEdit();
+  }, [examId]);
 
   const handleAddQuestion = () => {
     setQuestions((prev) => [createEmptyQuestion(), ...prev]);
@@ -182,34 +230,49 @@ const CreateExam: React.FC = () => {
 
     setSaving(true);
     try {
-      await api.post("/exams", {
+      const payload = {
         title,
         description,
         duration,
-        courseId,
+        courseId: activeCourseId,
         questions,
-      });
+      };
 
-      navigate(`/courses/${courseId}`);
+      if (isEditMode) {
+        await api.put(`/exams/${examId}`, payload);
+      } else {
+        await api.post("/exams", payload);
+      }
+
+      navigate(`/courses/${activeCourseId}`);
     } catch (err: any) {
-      console.error("Failed to create exam:", err);
-      setError(err.response?.data?.message || "Đã xảy ra lỗi khi tạo đề thi.");
+      console.error("Failed to save exam:", err);
+      setError(err.response?.data?.message || "Đã xảy ra lỗi khi lưu đề thi.");
     } finally {
       setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-24">
+        <Loader2 className="w-12 h-12 text-brand-500 animate-spin mb-4" />
+        <p className="text-slate-400 font-medium">Đang tải đề thi...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
       {/* Header */}
-      <Link to={`/courses/${courseId}`} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-6 transition-colors">
+      <Link to={`/courses/${activeCourseId}`} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Quay lại chi tiết khóa học
       </Link>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-dark-700/60 pb-6">
         <div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <Award className="w-8 h-8 text-amber-500" /> Tạo bài kiểm tra mới
+            <Award className="w-8 h-8 text-amber-500" /> {isEditMode ? "Chỉnh sửa bài kiểm tra" : "Tạo bài kiểm tra mới"}
           </h1>
           <p className="text-slate-400 text-sm mt-1">
             Xây dựng đề thi trắc nghiệm, đúng sai và điền từ, thiết lập thang điểm.
@@ -285,7 +348,7 @@ const CreateExam: React.FC = () => {
               >
                 <Plus className="w-4 h-4" /> Thêm câu hỏi
               </button>
-              <Link to={`/courses/${courseId}`} className="btn-secondary text-xs sm:text-sm">
+              <Link to={`/courses/${activeCourseId}`} className="btn-secondary text-xs sm:text-sm">
                 Hủy thiết lập
               </Link>
               <button

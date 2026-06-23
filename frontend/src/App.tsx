@@ -82,6 +82,7 @@ const App: React.FC = () => {
                 <Route element={<AdminRoute />}>
                   <Route path="/users" element={<UserManagement />} />
                   <Route path="/courses/:id/exams/create" element={<CreateExam />} />
+                  <Route path="/exams/manage/:examId/edit" element={<CreateExam />} />
                   <Route path="/courses/:id/practice/create" element={<CreatePractice />} />
                   <Route path="/practice/create" element={<CreatePractice />} />
                   <Route path="/practice/manage/:practiceId/edit" element={<CreatePractice />} />

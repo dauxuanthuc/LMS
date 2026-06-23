@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
-import { BookOpen, FileText, Award, Plus, Trash2, ArrowLeft, Upload, Loader2, Sparkles } from "lucide-react";
+import { BookOpen, FileText, Award, Plus, Trash2, ArrowLeft, Upload, Loader2, Sparkles, Edit } from "lucide-react";
 
 interface Document {
   id: string;
@@ -349,13 +349,22 @@ const CourseDetail: React.FC = () => {
                   </Link>
 
                   {user?.role === "ADMIN" && (
-                    <button
-                      onClick={() => handleDeleteExam(exam.id, exam.title)}
-                      className="p-2.5 rounded-xl bg-red-950/20 hover:bg-red-900/30 border border-red-900/20 hover:border-red-500/30 text-red-400 cursor-pointer transition-all active:scale-95"
-                      title="Xóa đề thi"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/exams/manage/${exam.id}/edit`}
+                        className="p-2.5 rounded-xl bg-brand-950/20 hover:bg-brand-900/30 border border-brand-900/20 hover:border-brand-500/30 text-brand-400 cursor-pointer transition-all active:scale-95 flex items-center justify-center"
+                        title="Chỉnh sửa đề thi"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteExam(exam.id, exam.title)}
+                        className="p-2.5 rounded-xl bg-red-950/20 hover:bg-red-900/30 border border-red-900/20 hover:border-red-500/30 text-red-400 cursor-pointer transition-all active:scale-95 flex items-center justify-center"
+                        title="Xóa đề thi"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
