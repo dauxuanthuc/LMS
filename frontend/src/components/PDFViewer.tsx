@@ -18,9 +18,38 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<number[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [pageInput, setPageInput] = useState<string>("1");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderTaskRef = useRef<any>(null);
+
+  // Sync pageInput with pageNum
+  useEffect(() => {
+    setPageInput(pageNum.toString());
+  }, [pageNum]);
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseInt(pageInput, 10);
+    if (!isNaN(val) && val >= 1 && val <= numPages) {
+      setPageNum(val);
+    } else {
+      setPageInput(pageNum.toString());
+    }
+  };
+
+  const handlePageInputBlur = () => {
+    const val = parseInt(pageInput, 10);
+    if (!isNaN(val) && val >= 1 && val <= numPages) {
+      setPageNum(val);
+    } else {
+      setPageInput(pageNum.toString());
+    }
+  };
 
   // Initialize PDFJS library worker
   useEffect(() => {
@@ -182,25 +211,37 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ fileUrl }) => {
       {/* PDF Controls Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-dark-800/80 border border-dark-700/50 rounded-2xl shadow-md backdrop-blur-md">
         {/* Pagination */}
-        <div className="flex items-center gap-2">
+        <form onSubmit={handlePageInputSubmit} className="flex items-center gap-2">
           <button
+            type="button"
             onClick={handlePrevPage}
             disabled={pageNum <= 1}
             className="p-2 rounded-xl bg-dark-900 border border-dark-700 hover:bg-dark-700 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-semibold text-slate-300">
-            Trang {pageNum} / {numPages}
-          </span>
+          
+          <div className="flex items-center gap-1.5 bg-dark-950 px-2.5 py-1 rounded-xl border border-dark-700/60">
+            <span className="text-xs font-semibold text-slate-400">Trang</span>
+            <input
+              type="text"
+              value={pageInput}
+              onChange={handlePageInputChange}
+              onBlur={handlePageInputBlur}
+              className="w-10 text-center bg-dark-900 border border-dark-700 rounded-lg py-0.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-bold"
+            />
+            <span className="text-xs font-semibold text-slate-450">/ {numPages}</span>
+          </div>
+
           <button
+            type="button"
             onClick={handleNextPage}
             disabled={pageNum >= numPages}
             className="p-2 rounded-xl bg-dark-900 border border-dark-700 hover:bg-dark-700 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-        </div>
+        </form>
 
         {/* Zoom */}
         <div className="flex items-center gap-2">
